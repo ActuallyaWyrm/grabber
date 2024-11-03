@@ -1,0 +1,36 @@
+import requests
+import json
+from discord_webhook import DiscordWebhook
+from googleapiclient.discovery import build
+
+# Replace these with your Google API Key and CSE ID
+API_KEY = 'AIzaSyBLUHBZhGWAtUTbVqKAUiL_H0SDUtl7_QI'
+CSE_ID = 'a70fd6fdc9f3c4efc'
+DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1302684953124802650/ayhs_Y-43vHA9hbZ2HQIm2NKhuyG3R-YlYvHtRS6g1a0K9bNm5IlAGAWbwvQ9YrzI0Lh'
+
+def google_image_search(query):
+    service = build("customsearch", "v1", developerKey=API_KEY)
+    res = service.cse().list(q=query, cx=CSE_ID, searchType="image", num=1).execute()
+    
+    if 'items' in res:
+        image_url = res['items'][0]['link']
+        return image_url
+    return None
+
+def send_discord_message(image_url, query):
+    webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL, content=f'{image_url}')
+    response = webhook.execute()
+    return response
+
+def respond_to_message(query):
+    # Get image URL from Google Search
+    image_url = google_image_search(query)
+    if image_url:
+        # Send the image URL back to Discord
+        send_discord_message(image_url, query)
+    else:
+        send_discord_message("No image found for your search.", query)
+
+# Example of responding to a query
+query = "Cute puppies"  # Replace this with the actual message text you receive
+respond_to_message(query)
